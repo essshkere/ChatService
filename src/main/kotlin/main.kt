@@ -49,7 +49,10 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
         message.id = i++
         messages.add(message)
         val chatService = ChatService()
-        chatService.create(Chat(message, message.title))
+        if (chatService.read(message.idChat) == null) {
+            chatService.create(Chat(message, message.title))
+        }
+
         return message
     }
 
@@ -94,24 +97,42 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
 
     fun getUnreadChatsCount(): Int {//+
         val predicate: (Message) -> Boolean = { message -> !message.readMessage }
-
         //  список непрочитанных сообщений
         val unreadMessages = messages.filter(predicate)
         // уникальные идентификаторы
         val uniqueChatIds = unreadMessages.map { it.idChat }.distinct()
         return uniqueChatIds.size
-
-//        val unreadList = messages.filter(predicate)
-//
-//        val uniqueId: (List<Message>) -> Int = { idChat -> idChat.distinct().size }
-//        return uniqueId
-
     }
-//    public inline fun <Message> MutableList<Message>.filter (predicate : (Message) -> Boolean): List<Message> {
-//
-//        return filterTo(ArrayList<Message>(),predicate )
-//
-//    }
+
+    fun getLastMessages(): List<String> {
+        val lastMessages = mutableListOf<String>()
+
+        val groupedMessages = messages.groupBy { it.idChat }
+        for ((idChat, messages) in groupedMessages) {
+            val lastMessage = messages.lastOrNull { !it.isDeleted }
+            if (lastMessage != null) {
+                lastMessages.add("Чат ID: $idChat, Последнее сообщение: ${lastMessage.text}")
+            } else {
+                lastMessages.add("Чат ID: $idChat, нет сообщений.")
+            }
+        }
+
+        return lastMessages
+    }
+    fun getMessagesFromChat(idChat: Int, count: Int): List<Message> {
+        val messagesFromChat = messages.filter { it.idChat == idChat && !it.isDeleted }.takeLast(count)
+
+        // Помечаем сообщения как прочитанные
+        messagesFromChat.forEach { it.readMessage = true }
+
+        return if (messagesFromChat.isNotEmpty()) {
+            messagesFromChat
+        } else {
+            println("Нет сообщений в чате ID: $idChat.")
+            emptyList()
+        }
+    }
+
 }
 
 
@@ -152,4 +173,11 @@ public class ChatService(private val chats: MutableList<Chat> = mutableListOf())
                 println("ID: ${chat.id}, Текст: ${chat.title}")
         }
     }
+    fun chatExists(idChat: Int): Boolean {
+        return chats.any { it.id == idChat }
+    }
+    fun getChats(): List<Chat> {
+        return chats.filter { !it.isDeleted }
+    }
 }
+
