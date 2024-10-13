@@ -4,13 +4,9 @@ import com.sun.org.apache.xml.internal.serializer.utils.Utils.messages
 fun main() {
     val messageService = MessageService()
     val chatService = ChatService()
-    messageService.create(Message( idChat = 1, title = "Марат"))
-    messageService.create(Message( idChat = 2, title = "Мурат"))
-    messageService.create(Message( idChat = 3, title = "Тимур"))
-
-
-
-
+    messageService.create(Message(idChat = 1, title = "Марат"))
+    messageService.create(Message(idChat = 2, title = "Мурат"))
+    messageService.create(Message(idChat = 3, title = "Тимур"))
 }
 
 data class Message(
@@ -28,8 +24,6 @@ data class Chat(
     val title: String, // название собеседника
     var id: Int = 0, // id сообщения
     var isDeleted: Boolean = false,//  удаленность чата
-
-
 )
 
 
@@ -38,8 +32,6 @@ interface Service<T> {
     fun read(id: Int): T?
     fun delete(id: Int): Boolean
     fun show()
-
-
 }
 
 class MessageService(private val messages: MutableList<Message> = mutableListOf()) : Service<Message> {
@@ -52,12 +44,11 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
         if (chatService.read(message.idChat) == null) {
             chatService.create(Chat(message, message.title))
         }
-
         return message
     }
 
-    override fun read(id: Int): Message? { //+
-        return messages.find { it.id == id }
+    override fun read(id: Int): Message? {
+        return messages.find { it.id == id && !it.isDeleted }
     }
 
     fun update(message: Message): Message? { //+
@@ -69,7 +60,7 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
         return null
     }
 
-    override fun delete(id: Int): Boolean { //+
+    override fun delete(id: Int): Boolean {
         val message = read(id)
         return if (message != null) {
             message.isDeleted = true
@@ -105,34 +96,27 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
     }
 
     fun getLastMessages(): List<String> {
-        val lastMessages = mutableListOf<String>()
-
-        val groupedMessages = messages.groupBy { it.idChat }
-        for ((idChat, messages) in groupedMessages) {
-            val lastMessage = messages.lastOrNull { !it.isDeleted }
-            if (lastMessage != null) {
-                lastMessages.add("Чат ID: $idChat, Последнее сообщение: ${lastMessage.text}")
-            } else {
-                lastMessages.add("Чат ID: $idChat, нет сообщений.")
+        return messages.groupBy { it.idChat }
+            .map { (idChat, msgs) ->
+                msgs.lastOrNull { !it.isDeleted }?.let { lastMessage ->
+                    "Чат ID: $idChat, Последнее сообщение: ${lastMessage.text}"
+                } ?: "Чат ID: $idChat, нет сообщений."
             }
-        }
-
-        return lastMessages
     }
+
     fun getMessagesFromChat(idChat: Int, count: Int): List<Message> {
-        val messagesFromChat = messages.filter { it.idChat == idChat && !it.isDeleted }.takeLast(count)
+        // Фильтруем сообщения по idChat и исключаем удалённые, оставляем последние count:
+        val filteredMessages = messages.filter { it.idChat == idChat && !it.isDeleted }
 
-        // Помечаем сообщения как прочитанные
-        messagesFromChat.forEach { it.readMessage = true }
-
-        return if (messagesFromChat.isNotEmpty()) {
-            messagesFromChat
-        } else {
+        // Если список пуст, выводим сообщение в консоль и возвращаем пустой список:
+        if (filteredMessages.isEmpty()) {
             println("Нет сообщений в чате ID: $idChat.")
-            emptyList()
+            return emptyList()
         }
-    }
 
+        // Помечаем сообщения как прочитанные и возвращаем последние count:
+        return filteredMessages.takeLast(count).onEach { message -> message.readMessage = true }
+    }
 }
 
 
@@ -145,12 +129,11 @@ public class ChatService(private val chats: MutableList<Chat> = mutableListOf())
         return chat
     }
 
-    override fun read(id: Int): Chat? {//+
-        return chats.find { it.id == id }
+    override fun read(id: Int): Chat? {
+        return chats.find { it.id == id && !it.isDeleted }
     }
 
-
-    override fun delete(id: Int): Boolean {//+
+    override fun delete(id: Int): Boolean {
         val chat = read(id)
         return if (chat != null) {
             chat.isDeleted = true
@@ -160,10 +143,8 @@ public class ChatService(private val chats: MutableList<Chat> = mutableListOf())
         }
     }
 
-    override fun show() {//+
-        for (chat in chats) {
-            println("ID: ${chat.id}, Текст: ${chat.title}")
-        }
+    override fun show() {
+        chats.forEach { println("ID: ${it.id}, Текст: ${it.title}") }
     }
 
 
@@ -173,11 +154,14 @@ public class ChatService(private val chats: MutableList<Chat> = mutableListOf())
                 println("ID: ${chat.id}, Текст: ${chat.title}")
         }
     }
+
     fun chatExists(idChat: Int): Boolean {
         return chats.any { it.id == idChat }
     }
+
     fun getChats(): List<Chat> {
         return chats.filter { !it.isDeleted }
     }
 }
+
 
