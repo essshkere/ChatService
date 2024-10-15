@@ -14,15 +14,6 @@ class MainKtTest {
     }
 
     @Test
-    fun testChatCreate() {
-        val chatService = ChatService()
-        chatService.create(Chat( Message( idChat = 1, title = "Марат"), title = "Марат"))
-        chatService.create(Chat( Message( idChat = 2, title = "Мурат"), title = "Мурат"))
-        val result = chatService.create(Chat( Message( idChat = 3, title = "Тимур"), title = "Тимур")).id
-        assertEquals(3, result)
-    }
-
-    @Test
     fun testMesReadTrue() {
         val messageService = MessageService()
         messageService.create(Message( idChat = 1, title = "Марат"))
@@ -33,34 +24,12 @@ class MainKtTest {
     }
 
     @Test
-    fun testChatReadTrue () {
-        val chatService = ChatService()
-        chatService.create(Chat( Message( idChat = 1, title = "Марат"), title = "Марат"))
-        chatService.create(Chat( Message( idChat = 2, title = "Мурат"), title = "Мурат"))
-        chatService.create(Chat( Message( idChat = 3, title = "Тимур"), title = "Тимур"))
-        val result = chatService.read(2)?.title
-
-        assertEquals("Мурат", result)
-    }
-
-    @Test
     fun testMesReadNull() {
         val messageService = MessageService()
         messageService.create(Message( idChat = 1, title = "Марат"))
         messageService.create(Message( idChat = 2, title = "Мурат"))
         messageService.create(Message( idChat = 3, title = "Тимур"))
         val result = messageService.read(4)?.title
-        assertEquals(null, result)
-    }
-
-    @Test
-    fun testChatReadNull () {
-        val chatService = ChatService()
-        chatService.create(Chat( Message( idChat = 1, title = "Марат"), title = "Марат"))
-        chatService.create(Chat( Message( idChat = 2, title = "Мурат"), title = "Мурат"))
-        chatService.create(Chat( Message( idChat = 3, title = "Тимур"), title = "Тимур"))
-        val result = chatService.read(4)?.title
-
         assertEquals(null, result)
     }
 
@@ -104,27 +73,6 @@ class MainKtTest {
         assertEquals(false, result)
     }
 
-    @Test
-    fun testChatDeleteTrue () {
-        val chatService = ChatService()
-        chatService.create(Chat( Message( idChat = 1, title = "Марат"), title = "Марат"))
-        chatService.create(Chat( Message( idChat = 2, title = "Мурат"), title = "Мурат"))
-        chatService.create(Chat( Message( idChat = 3, title = "Тимур"), title = "Тимур"))
-        val result = chatService.delete(1)
-
-        assertEquals(true, result)
-    }
-
-    @Test
-    fun testChatDeleteFalse () {
-        val chatService = ChatService()
-        chatService.create(Chat( Message( idChat = 1, title = "Марат"), title = "Марат"))
-        chatService.create(Chat( Message( idChat = 2, title = "Мурат"), title = "Мурат"))
-        chatService.create(Chat( Message( idChat = 3, title = "Тимур"), title = "Тимур"))
-        val result = chatService.delete(4)
-
-        assertEquals(false, result)
-    }
     @Test
     fun testMesReadStatusTrue() {
         val messageService = MessageService()

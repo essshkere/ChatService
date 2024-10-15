@@ -3,7 +3,7 @@ import com.sun.org.apache.xml.internal.serializer.utils.Utils.messages
 
 fun main() {
     val messageService = MessageService()
-    val chatService = ChatService()
+
     messageService.create(Message(idChat = 1, title = "Марат"))
     messageService.create(Message(idChat = 2, title = "Мурат"))
     messageService.create(Message(idChat = 3, title = "Тимур"))
@@ -19,12 +19,6 @@ data class Message(
     val title: String
 )
 
-data class Chat(
-    val message: Message,
-    val title: String, // название собеседника
-    var id: Int = 0, // id сообщения
-    var isDeleted: Boolean = false,//  удаленность чата
-)
 
 
 interface Service<T> {
@@ -40,12 +34,9 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
     override fun create(message: Message): Message {//+
         message.id = i++
         messages.add(message)
-        val chatService = ChatService()
-        if (chatService.read(message.idChat) == null) {
-            chatService.create(Chat(message, message.title))
-        }
         return message
     }
+
 
     override fun read(id: Int): Message? {
         return messages.find { it.id == id && !it.isDeleted }
@@ -120,48 +111,5 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
 }
 
 
-public class ChatService(private val chats: MutableList<Chat> = mutableListOf()) : Service<Chat> {
-    private var i = 1
-
-    override fun create(chat: Chat): Chat { //когда отправляется сообщение
-        chat.id = i++
-        chats.add(chat)
-        return chat
-    }
-
-    override fun read(id: Int): Chat? {
-        return chats.find { it.id == id && !it.isDeleted }
-    }
-
-    override fun delete(id: Int): Boolean {
-        val chat = read(id)
-        return if (chat != null) {
-            chat.isDeleted = true
-            true
-        } else {
-            false
-        }
-    }
-
-    override fun show() {
-        chats.forEach { println("ID: ${it.id}, Текст: ${it.title}") }
-    }
-
-
-    fun showIdChat(idChat: Int) {//+
-        for (chat in chats) {
-            if (chat.id == idChat)
-                println("ID: ${chat.id}, Текст: ${chat.title}")
-        }
-    }
-
-    fun chatExists(idChat: Int): Boolean {
-        return chats.any { it.id == idChat }
-    }
-
-    fun getChats(): List<Chat> {
-        return chats.filter { !it.isDeleted }
-    }
-}
 
 
