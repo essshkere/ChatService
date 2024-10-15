@@ -68,7 +68,6 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
             "Message ID: ${message.id}, Content: ${message.text}"
         }
             println(showList)
-
 //        for (message in messages) {
 //            println("ID: ${message.id}, Текст: ${message.text}")
 //        }
