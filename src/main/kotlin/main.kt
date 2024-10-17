@@ -7,6 +7,8 @@ fun main() {
     messageService.create(Message(idChat = 1, title = "Марат"))
     messageService.create(Message(idChat = 2, title = "Мурат"))
     messageService.create(Message(idChat = 3, title = "Тимур"))
+    messageService.show()
+    messageService.getLastMessages()
 }
 
 data class Message(
@@ -61,10 +63,14 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
         }
     }
 
-    override fun show() { //+
-        for (message in messages) {
-            println("ID: ${message.id}, Текст: ${message.text}")
+    override fun show() {
+        val showList = messages.joinToString("\n") { message ->
+            "Message ID: ${message.id}, Content: ${message.text}"
         }
+        println(showList)
+//        for (message in messages) {
+//            println("ID: ${message.id}, Текст: ${message.text}")
+//        }
     }
 
     fun readStatusChange(id: Int): Boolean { //+
@@ -77,39 +83,53 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
         }
     }
 
-    fun getUnreadChatsCount(): Int {//+
-        val predicate: (Message) -> Boolean = { message -> !message.readMessage }
-        //  список непрочитанных сообщений
-        val unreadMessages = messages.filter(predicate)
-        // уникальные идентификаторы
-        val uniqueChatIds = unreadMessages.map { it.idChat }.distinct()
-        return uniqueChatIds.size
-    }
+    fun getUnreadChatsCount(): Int =
+        messages.filter { message -> !message.readMessage}
+            .map{it.idChat}
+            .distinct().count()
 
-    fun getLastMessages(): List<String> {
-        return messages.groupBy { it.idChat }
+//        val predicate: (Message) -> Boolean = { message -> !message.readMessage }
+//        //  список непрочитанных сообщений
+//        val unreadMessages = messages.filter(predicate)
+//        // уникальные идентификаторы
+//        val uniqueChatIds = unreadMessages.map { it.idChat }.distinct()
+
+
+
+    fun getLastMessages(){
+
+        val lastMessages = messages.groupBy { it.idChat }
             .map { (idChat, msgs) ->
                 msgs.lastOrNull { !it.isDeleted }?.let { lastMessage ->
                     "Чат ID: $idChat, Последнее сообщение: ${lastMessage.text}"
                 } ?: "Чат ID: $idChat, нет сообщений."
             }
+        println(lastMessages)
     }
 
     fun getMessagesFromChat(idChat: Int, count: Int): List<Message> {
-        // Фильтруем сообщения по idChat и исключаем удалённые, оставляем последние count:
-        val filteredMessages = messages.filter { it.idChat == idChat && !it.isDeleted }
-
-        // Если список пуст, выводим сообщение в консоль и возвращаем пустой список:
+        val filteredMessages = messages.asSequence()
+            .filter { it.idChat == idChat && !it.isDeleted }
+            .toList()
         if (filteredMessages.isEmpty()) {
             println("Нет сообщений в чате ID: $idChat.")
             return emptyList()
         }
+        return filteredMessages.takeLast(count).onEach { message ->
+            message.readMessage = true
 
-        // Помечаем сообщения как прочитанные и возвращаем последние count:
-        return filteredMessages.takeLast(count).onEach { message -> message.readMessage = true }
+        }
     }
+
+//    fun getMessagesFromChat(idChat: Int, count: Int): List<Message> {
+//
+//        val filteredMessages = messages.filter { it.idChat == idChat && !it.isDeleted }
+//        // Если список пуст, выводим сообщение в консоль и возвращаем пустой список:
+//        if (filteredMessages.isEmpty()) {
+//            println("Нет сообщений в чате ID: $idChat.")
+//            return emptyList()
+//        }
+//        // Помечаем сообщения как прочитанные и возвращаем последние count:
+//        return filteredMessages.takeLast(count).onEach { message -> message.readMessage = true }
+//    }
 }
-
-
-
-
