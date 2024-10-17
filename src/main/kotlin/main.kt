@@ -117,11 +117,12 @@ class MessageService(private val messages: MutableList<Message> = mutableListOf(
         }
         return filteredMessages.takeLast(count).onEach { message ->
             message.readMessage = true
+
         }
     }
 
 //    fun getMessagesFromChat(idChat: Int, count: Int): List<Message> {
-//        // Фильтруем сообщения по idChat и исключаем удалённые, оставляем последние count:
+//
 //        val filteredMessages = messages.filter { it.idChat == idChat && !it.isDeleted }
 //        // Если список пуст, выводим сообщение в консоль и возвращаем пустой список:
 //        if (filteredMessages.isEmpty()) {
